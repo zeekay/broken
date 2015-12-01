@@ -26,4 +26,10 @@ Promise.reflect = (promise) ->
 Promise.settle = (promises) ->
   Promise.all promises.map Promise.reflect
 
+Promise::callback = (cb) ->
+  if typeof cb is 'function'
+    @then  (value) -> cb null, value
+    @catch (error) -> cb error, null
+  @
+
 module.exports = Promise
