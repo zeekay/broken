@@ -1,0 +1,35 @@
+{
+  "name": "broken",
+  "version": "0.0.1",
+  "description": "Promises are meant to be broken.",
+  "main": "lib/",
+  "dependencies": {
+    "postmortem": "^0.2.4",
+    "zousan": "^2.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.1.0",
+    "co-mocha": "^1.1.2",
+    "coffee-script": "^1.10.0",
+    "mocha": "^2.3.4",
+    "shortcake": "^1.1.5"
+  },
+  "scripts": {
+    "prepublish": "cake build",
+    "test": "cake test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeekay/broken.git"
+  },
+  "keywords": [
+    "promises"
+  ],
+  "author": "Zach Kelling <zk@monoid.io> (http://zeekay.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zeekay/broken/issues"
+  },
+  "homepage": "https://github.com/zeekay/broken#readme"
+}
