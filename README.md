@@ -1,6 +1,7 @@
 # broken
 #### Promises are meant to be broken.
-Tiny wrapper around [Zousan](https://github.com/bluejava/zousan)
+Extra batteries for [Zousan](https://github.com/bluejava/zousan), a lightning
+fast, very small Promise A+ compliant implementation.
 
 ## Install
 ```bash
