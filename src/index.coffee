@@ -1,6 +1,6 @@
 Promise = require 'zousan'
 
-Promise.suppressUncaughtRejectionError = true
+Promise.suppressUncaughtRejectionError = false
 
 class PromiseInspection
   constructor: ({@state, @value, @reason}) ->
