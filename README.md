@@ -1,6 +1,8 @@
 # broken [![Build Status](https://travis-ci.org/zeekay/broken.svg?branch=master)](https://travis-ci.org/zeekay/broken) [![npm version](https://badge.fury.io/js/broken.svg)](https://badge.fury.io/js/broken)
 ##### Promises are meant to be broken.
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/zeekay/broken.svg)](https://greenkeeper.io/)
+
 Extra batteries for [Zousan](https://github.com/bluejava/zousan), a lightning
 fast, very small Promise A+ compliant implementation.
 
