@@ -1,15 +1,11 @@
 import PromiseInspection from './promise-inspection'
 
-Promise = (func) ->
-  if func
-    me = this
-    func (arg) ->
-      me.resolve arg
-      return
+Promise = (cb) ->
+  if cb
+    cb (arg) =>
+      @resolve arg
     , (arg) ->
-      me.reject arg       # the reject function bound to this context
-      return
-  return
+      @reject arg
 
 resolveClient = (c, arg) ->
   if typeof c.y == 'function'
