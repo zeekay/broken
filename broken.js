@@ -23,6 +23,10 @@ var PromiseInspection$1 = PromiseInspection = (function() {
 
 })();
 
+var _undefined$1 = void 0;
+
+var _undefinedString$1 = 'undefined';
+
 var soon;
 
 soon = (function() {
@@ -41,7 +45,7 @@ soon = (function() {
           global.console.error(err);
         }
       }
-      fq[fqStart++] = _undefined;
+      fq[fqStart++] = _undefined$1;
       if (fqStart === bufferSize) {
         fq.splice(0, bufferSize);
         fqStart = 0;
@@ -50,7 +54,7 @@ soon = (function() {
   };
   cqYield = (function() {
     var dd, mo;
-    if (typeof MutationObserver !== _undefinedString) {
+    if (typeof MutationObserver !== _undefinedString$1) {
       dd = document.createElement('div');
       mo = new MutationObserver(callQueue);
       mo.observe(dd, {
@@ -60,7 +64,7 @@ soon = (function() {
         dd.setAttribute('a', 0);
       };
     }
-    if (typeof setImmediate !== _undefinedString) {
+    if (typeof setImmediate !== _undefinedString$1) {
       return function() {
         setImmediate(callQueue);
       };
@@ -83,40 +87,26 @@ var Promise$1;
 var STATE_FULFILLED;
 var STATE_PENDING;
 var STATE_REJECTED;
-var _undefined$1;
+var _undefined;
 var rejectClient;
 var resolveClient;
 
-_undefined$1 = void 0;
+_undefined = void 0;
 
-STATE_PENDING = _undefined$1;
+STATE_PENDING = _undefined;
 
 STATE_FULFILLED = 'fulfilled';
 
 STATE_REJECTED = 'rejected';
 
-Promise$1 = function(fn) {
-  if (fn) {
-    fn((function(_this) {
-      return function(arg) {
-        return _this.resolve(arg);
-      };
-    })(this), (function(_this) {
-      return function(arg) {
-        return _this.reject(arg);
-      };
-    })(this));
-  }
-};
-
 resolveClient = function(c, arg) {
   var err, yret;
   if (typeof c.y === 'function') {
     try {
-      yret = c.y.call(_undefined$1, arg);
+      yret = c.y.call(_undefined, arg);
       c.p.resolve(yret);
-    } catch (error1) {
-      err = error1;
+    } catch (error) {
+      err = error;
       c.p.reject(err);
     }
   } else {
@@ -128,10 +118,10 @@ rejectClient = function(c, reason) {
   var err, yret;
   if (typeof c.n === 'function') {
     try {
-      yret = c.n.call(_undefined$1, reason);
+      yret = c.n.call(_undefined, reason);
       c.p.resolve(yret);
-    } catch (error1) {
-      err = error1;
+    } catch (error) {
+      err = error;
       c.p.reject(err);
     }
   } else {
@@ -139,165 +129,188 @@ rejectClient = function(c, reason) {
   }
 };
 
-Promise$1.prototype.resolve = function(value) {
-  var e, first, me, next;
-  if (this.state !== STATE_PENDING) {
-    return;
+Promise$1 = (function() {
+  function Promise(fn) {
+    if (fn) {
+      fn((function(_this) {
+        return function(arg) {
+          return _this.resolve(arg);
+        };
+      })(this), (function(_this) {
+        return function(arg) {
+          return _this.reject(arg);
+        };
+      })(this));
+    }
   }
-  if (value === this) {
-    return this.reject(new TypeError('Attempt to resolve promise with self'));
-  }
-  me = this;
-  if (value && (typeof value === 'function' || typeof value === 'object')) {
-    try {
-      first = true;
-      next = value.then;
-      if (typeof next === 'function') {
-        next.call(value, (function(ra) {
-          if (first) {
-            first = false;
-            me.resolve(ra);
-          }
-        }), function(rr) {
-          if (first) {
-            first = false;
-            me.reject(rr);
-          }
-        });
-        return;
-      }
-    } catch (error1) {
-      e = error1;
-      if (first) {
-        this.reject(e);
-      }
+
+  Promise.prototype.resolve = function(value) {
+    var clients, err, first, next;
+    if (this.state !== STATE_PENDING) {
       return;
     }
-  }
-  this.state = STATE_FULFILLED;
-  this.v = value;
-  if (me.c) {
-    soon$1(function() {
-      var l, n;
-      n = 0;
-      l = me.c.length;
-      while (n < l) {
-        resolveClient(me.c[n], value);
-        n++;
-      }
-    });
-  }
-};
-
-Promise$1.prototype.reject = function(reason) {
-  var clients;
-  if (this.state !== STATE_PENDING) {
-    return;
-  }
-  this.state = STATE_REJECTED;
-  this.v = reason;
-  clients = this.c;
-  if (clients) {
-    soon$1(function() {
-      var l, n;
-      n = 0;
-      l = clients.length;
-      while (n < l) {
-        rejectClient(clients[n], reason);
-        n++;
-      }
-    });
-  } else if (!Promise$1.suppressUncaughtRejectionError && global.console) {
-    global.console.log('Broken Promise! Please catch rejections: ', reason, reason ? reason.stack : null);
-  }
-};
-
-Promise$1.prototype.then = function(onF, onR) {
-  var a, client, p, s;
-  p = new Promise$1;
-  client = {
-    y: onF,
-    n: onR,
-    p: p
-  };
-  if (this.state === STATE_PENDING) {
-    if (this.c) {
-      this.c.push(client);
-    } else {
-      this.c = [client];
+    if (value === this) {
+      return this.reject(new TypeError('Attempt to resolve promise with self'));
     }
-  } else {
-    s = this.state;
-    a = this.v;
-    soon$1(function() {
-      if (s === STATE_FULFILLED) {
-        resolveClient(client, a);
-      } else {
-        rejectClient(client, a);
+    if (value && (typeof value === 'function' || typeof value === 'object')) {
+      try {
+        first = true;
+        next = value.then;
+        if (typeof next === 'function') {
+          next.call(value, (function(_this) {
+            return function(ra) {
+              if (first) {
+                if (first) {
+                  first = false;
+                }
+                _this.resolve(ra);
+              }
+            };
+          })(this), (function(_this) {
+            return function(rr) {
+              if (first) {
+                first = false;
+                _this.reject(rr);
+              }
+            };
+          })(this));
+          return;
+        }
+      } catch (error) {
+        err = error;
+        if (first) {
+          this.reject(err);
+        }
+        return;
       }
-    });
-  }
-  return p;
-};
+    }
+    this.state = STATE_FULFILLED;
+    this.v = value;
+    if (clients = this.c) {
+      soon$1((function(_this) {
+        return function() {
+          var c, i, len;
+          for (i = 0, len = clients.length; i < len; i++) {
+            c = clients[i];
+            resolveClient(c, value);
+          }
+        };
+      })(this));
+    }
+  };
 
-Promise$1.prototype["catch"] = function(cfn) {
-  return this.then(null, cfn);
-};
+  Promise.prototype.reject = function(reason) {
+    var clients;
+    if (this.state !== STATE_PENDING) {
+      return;
+    }
+    this.state = STATE_REJECTED;
+    this.v = reason;
+    if (clients = this.c) {
+      soon$1(function() {
+        var c, i, len;
+        for (i = 0, len = clients.length; i < len; i++) {
+          c = clients[i];
+          rejectClient(c, reason);
+        }
+      });
+    } else if (!Promise.suppressUncaughtRejectionError && global.console) {
+      global.console.log('Broken Promise, please catch rejections: ', reason, reason ? reason.stack : null);
+    }
+  };
 
-Promise$1.prototype["finally"] = function(cfn) {
-  return this.then(cfn, cfn);
-};
+  Promise.prototype.then = function(onFulfilled, onRejected) {
+    var a, client, p, s;
+    p = new Promise;
+    client = {
+      y: onFulfilled,
+      n: onRejected,
+      p: p
+    };
+    if (this.state === STATE_PENDING) {
+      if (this.c) {
+        this.c.push(client);
+      } else {
+        this.c = [client];
+      }
+    } else {
+      s = this.state;
+      a = this.v;
+      soon$1(function() {
+        if (s === STATE_FULFILLED) {
+          resolveClient(client, a);
+        } else {
+          rejectClient(client, a);
+        }
+      });
+    }
+    return p;
+  };
 
-Promise$1.prototype.timeout = function(ms, timeoutMsg) {
-  var me;
-  timeoutMsg = timeoutMsg || 'Timeout';
-  me = this;
-  return new Promise$1(function(resolve, reject) {
-    setTimeout((function() {
-      reject(Error(timeoutMsg));
-    }), ms);
-    me.then((function(v) {
-      resolve(v);
-    }), function(er) {
-      reject(er);
-    });
-  });
-};
+  Promise.prototype["catch"] = function(cfn) {
+    return this.then(null, cfn);
+  };
 
-Promise$1.prototype.callback = function(cb) {
-  if (typeof cb === 'function') {
-    this.then(function(value) {
-      return cb(null, value);
-    });
-    this["catch"](function(error) {
-      return cb(error, null);
-    });
-  }
-  return this;
-};
+  Promise.prototype["finally"] = function(cfn) {
+    return this.then(cfn, cfn);
+  };
 
-Promise$1.resolve = function(val) {
+  Promise.prototype.timeout = function(ms, msg) {
+    msg = msg || 'timeout';
+    return new Promise((function(_this) {
+      return function(resolve, reject) {
+        setTimeout(function() {
+          return reject(Error(msg));
+        }, ms);
+        _this.then(function(val) {
+          resolve(val);
+        }, function(err) {
+          reject(err);
+        });
+      };
+    })(this));
+  };
+
+  Promise.prototype.callback = function(cb) {
+    if (typeof cb === 'function') {
+      this.then(function(val) {
+        return cb(null, val);
+      });
+      this["catch"](function(err) {
+        return cb(err, null);
+      });
+    }
+    return this;
+  };
+
+  return Promise;
+
+})();
+
+var Promise$2 = Promise$1;
+
+var resolve = function(val) {
   var z;
-  z = new Promise$1;
+  z = new Promise$2;
   z.resolve(val);
   return z;
 };
 
-Promise$1.reject = function(err) {
+var reject = function(err) {
   var z;
-  z = new Promise$1;
+  z = new Promise$2;
   z.reject(err);
   return z;
 };
 
-Promise$1.all = function(ps) {
+var all = function(ps) {
   var i, j, len, p, rc, resolvePromise, results, retP;
   results = [];
   rc = 0;
-  retP = new Promise$1();
+  retP = new Promise$2();
   resolvePromise = function(p, i) {
     if (!p || typeof p.then !== 'function') {
-      p = Promise$1.resolve(p);
+      p = resolve(p);
     }
     p.then(function(yv) {
       results[i] = yv;
@@ -319,8 +332,8 @@ Promise$1.all = function(ps) {
   return retP;
 };
 
-Promise$1.reflect = function(promise) {
-  return new Promise$1(function(resolve, reject) {
+var reflect = function(promise) {
+  return new Promise$2(function(resolve, reject) {
     return promise.then(function(value) {
       return resolve(new PromiseInspection$1({
         state: 'fulfilled',
@@ -335,13 +348,21 @@ Promise$1.reflect = function(promise) {
   });
 };
 
-Promise$1.settle = function(promises) {
-  return Promise$1.all(promises.map(Promise$1.reflect));
+var settle = function(promises) {
+  return all(promises.map(reflect));
 };
 
-Promise$1.soon = soon$1;
+Promise$2.all = all;
 
-var Promise$2 = Promise$1;
+Promise$2.reflect = reflect;
+
+Promise$2.reject = reject;
+
+Promise$2.resolve = resolve;
+
+Promise$2.settle = settle;
+
+Promise$2.soon = soon$1;
 
 return Promise$2;
 

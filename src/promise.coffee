@@ -12,14 +12,6 @@ STATE_PENDING   = _undefined
 STATE_FULFILLED = 'fulfilled'
 STATE_REJECTED  = 'rejected'
 
-Promise = (fn) ->
-  if fn
-    fn (arg) =>
-      @resolve arg
-    , (arg) =>
-      @reject arg       # the reject function bound to this context
-  return
-
 resolveClient = (c, arg) ->
   if typeof c.y == 'function'
     try
@@ -44,178 +36,125 @@ rejectClient = (c, reason) ->
     c.p.reject reason
   return
 
-Promise::resolve = (value) ->
-  if @state != STATE_PENDING
-    return
-  if value == this
-    return @reject(new TypeError('Attempt to resolve promise with self'))
-  me = this
-  # preserve this
-  if value and (typeof value == 'function' or typeof value == 'object')
-    try
-      first = true
-      # first time through?
-      next = value.then
-      if typeof next == 'function'
-        # and call the value.then (which is now in "then") with value as the context and the resolve/reject functions per thenable spec
-        next.call value, ((ra) ->
-          if first
-            first = false
-            me.resolve ra
+
+class Promise
+  constructor: (fn) ->
+    if fn
+      fn (arg) =>
+        @resolve arg
+      , (arg) =>
+        @reject arg
+
+  resolve: (value) ->
+    if @state != STATE_PENDING
+      return
+
+    if value == @
+      return @reject new TypeError 'Attempt to resolve promise with self'
+
+    if value and (typeof value == 'function' or typeof value == 'object')
+      try
+        # First time through?
+        first = true
+        next = value.then
+
+        if typeof next == 'function'
+          # And call the value.then (which is now in "then") with value as the
+          # context and the resolve/reject functions per thenable spec
+          next.call value, (ra) =>
+            if first
+              first = false if first
+              @resolve ra
+            return
+          , (rr) =>
+            if first
+              first = false
+              @reject rr
+            return
           return
-        ), (rr) ->
-          if first
-            first = false
-            me.reject rr
-          return
+      catch err
+        @reject err if first
         return
-    catch e
-      if first
-        @reject e
-      return
-  @state = STATE_FULFILLED
-  @v = value
-  if me.c
-    soon ->
-      n = 0
-      l = me.c.length
-      while n < l
-        resolveClient me.c[n], value
-        n++
-      return
-  return
 
-Promise::reject = (reason) ->
-  if @state != STATE_PENDING
+    @state = STATE_FULFILLED
+    @v     = value
+
+    if clients = @c
+      soon =>
+        resolveClient c, value for c in clients
+        return
     return
-  @state = STATE_REJECTED
-  @v = reason
-  clients = @c
-  if clients
-    soon ->
-      n = 0
-      l = clients.length
-      while n < l
-        rejectClient clients[n], reason
-        n++
-      return
-  else if !Promise.suppressUncaughtRejectionError and global.console
-    global.console.log 'Broken Promise! Please catch rejections: ', reason, if reason then reason.stack else null
-  return
 
-Promise::then = (onF, onR) ->
-  p = new Promise
+  reject: (reason) ->
+    return if @state != STATE_PENDING
 
-  client =
-    y: onF
-    n: onR
-    p: p
+    @state = STATE_REJECTED
+    @v     = reason
 
-  if @state == STATE_PENDING
-    # we are pending, so client must wait - so push client to end of this.c array (create if necessary for efficiency)
-    if @c
-      @c.push client
-    else
-      @c = [ client ]
-  else
-    s = @state
-    a = @v
-    soon ->
-      # we are not pending, so yield script and resolve/reject as needed
-      if s == STATE_FULFILLED
-        resolveClient client, a
+    if clients = @c
+      soon ->
+        rejectClient c, reason for c in clients
+        return
+    else if !Promise.suppressUncaughtRejectionError and global.console
+      global.console.log 'Broken Promise, please catch rejections: ', reason, if reason then reason.stack else null
+
+    return
+
+  then: (onFulfilled, onRejected) ->
+    p = new Promise
+
+    client =
+      y: onFulfilled
+      n: onRejected
+      p: p
+
+    if @state == STATE_PENDING
+      # We are pending, so client must wait - so push client to end of this.c
+      # array (create if necessary for efficiency)
+      if @c
+        @c.push client
       else
-        rejectClient client, a
-      return
-  p
+        @c = [ client ]
+    else
+      s = @state
+      a = @v
+      soon ->
+        # We are not pending, so yield script and resolve/reject as needed
+        if s == STATE_FULFILLED
+          resolveClient client, a
+        else
+          rejectClient client, a
+        return
+    p
 
-Promise::catch = (cfn) ->
-  @then null, cfn
+  catch: (cfn) ->
+    @then null, cfn
 
-Promise::finally = (cfn) ->
-  @then cfn, cfn
+  finally: (cfn) ->
+    @then cfn, cfn
 
-Promise::timeout = (ms, timeoutMsg) ->
-  timeoutMsg = timeoutMsg or 'Timeout'
-  me = this
+  timeout: (ms, msg) ->
+    msg = msg or 'timeout'
 
-  new Promise (resolve, reject) ->
-    setTimeout (->
-      reject Error(timeoutMsg)
-      # This will fail silently if promise already resolved or rejected
-      return
-    ), ms
-    me.then ((v) ->
-      resolve v
-      return
-    ), (er) ->
-      reject er
-      return
-    # This will fail silently if promise already timed out
-    return
+    new Promise (resolve, reject) =>
+      setTimeout ->
+        # This will fail silently if promise already resolved or rejected
+        reject Error(msg)
+      , ms
 
-Promise::callback = (cb) ->
-  if typeof cb is 'function'
-    @then  (value) -> cb null, value
-    @catch (error) -> cb error, null
-  @
-
-Promise.resolve = (val) ->
-  z = new Promise
-  z.resolve val
-  z
-
-Promise.reject = (err) ->
-  z = new Promise
-  z.reject err
-  z
-
-Promise.all = (ps) ->
-  # Sesults and resolved count
-  results = []
-  rc      = 0
-  retP    = new Promise()
-
-  resolvePromise = (p, i) ->
-    if !p or typeof p.then != 'function'
-      p = Promise.resolve(p)
-
-    p.then (yv) ->
-      results[i] = yv
-      rc++
-      if rc == ps.length
-        retP.resolve results
+      # This will fail silently if promise already timed out
+      @then (val) ->
+        resolve val
+        return
+      , (err) ->
+        reject err
+        return
       return
 
-    , (nv) ->
-      retP.reject nv
-      return
-
-    return
-
-  resolvePromise p, i for p, i in ps
-
-  # For zero length arrays, resolve immediately
-  if !ps.length
-    retP.resolve results
-
-  retP
-
-Promise.reflect = (promise) ->
-  new Promise (resolve, reject) ->
-    promise
-      .then (value) ->
-        resolve new PromiseInspection
-          state: 'fulfilled'
-          value: value
-      .catch (err) ->
-        resolve new PromiseInspection
-          state: 'rejected'
-          reason: err
-
-Promise.settle = (promises) ->
-  Promise.all promises.map Promise.reflect
-
-Promise.soon = soon
+  callback: (cb) ->
+    if typeof cb is 'function'
+      @then  (val) -> cb null, val
+      @catch (err) -> cb err, null
+    @
 
 export default Promise

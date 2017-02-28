@@ -1,3 +1,5 @@
+import {_undefined, _undefinedString} from './utils'
+
 # See http://www.bluejava.com/4NS/Speed-up-your-Websites-with-a-Faster-setTimeout-using-soon
 # This is a very fast "asynchronous" flow control - i.e. it yields the thread
 # and executes later, but not much later. It is far faster and lighter than
