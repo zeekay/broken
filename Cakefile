@@ -4,14 +4,53 @@ use 'cake-publish'
 use 'cake-test'
 use 'cake-version'
 
+coffee      = require 'rollup-plugin-coffee-script'
+commonjs    = require 'rollup-plugin-commonjs'
+nodeResolve = require 'rollup-plugin-node-resolve'
+rollup      = require 'rollup'
+
+pkg         = require './package'
+
 option '-g', '--grep [filter]', 'test filter'
 option '-v', '--version [<newversion> | major | minor | patch | build]', 'new version'
 
-task 'clean', 'clean project', (options) ->
-  exec 'rm -rf lib'
+task 'clean', 'clean project', ->
+  exec 'rm -rf dist'
 
-task 'build', 'build project', (options) ->
-  exec 'coffee -bcm -o lib/ src/'
+task 'build', 'build project', ->
+  plugins = [
+    coffee()
+    nodeResolve
+      browser: true
+      extensions: ['.js', '.coffee']
+      module:  true
+    commonjs
+      extensions: ['.js', '.coffee']
+      sourceMap: true
+  ]
 
-task 'watch', 'watch for changes and recompile project', ->
-  exec 'coffee -bc -m -w -o lib/ src/'
+  # Browser (single file)
+  bundle = yield rollup.rollup
+    entry:   'src/index.coffee'
+    plugins:  plugins
+
+  yield bundle.write
+    dest:       'broken.js'
+    format:     'umd'
+    moduleName: 'Broken'
+
+  bundle = yield rollup.rollup
+    entry:    'src/index.coffee'
+    plugins:  plugins
+
+  # CommonJS
+  yield bundle.write
+    dest:       pkg.main
+    format:     'cjs'
+    sourceMap:  false
+
+  # ES module bundle
+  yield bundle.write
+    dest:      pkg.module
+    format:    'es'
+    sourceMap: false

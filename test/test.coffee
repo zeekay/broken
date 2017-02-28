@@ -1,4 +1,4 @@
-Promise = require '../lib'
+Promise = require '../'
 
 describe 'Promise.reflect', ->
   it 'should wrap promises and always resolve to PromiseInspections', ->
