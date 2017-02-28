@@ -33,9 +33,71 @@ var rejectClient;
 var resolveClient;
 var soon;
 
-Promise$1 = function(cb) {
-  if (cb) {
-    cb((function(_this) {
+_undefined = void 0;
+
+_undefinedString = 'undefined';
+
+STATE_PENDING = _undefined;
+
+STATE_FULFILLED = 'fulfilled';
+
+STATE_REJECTED = 'rejected';
+
+soon = (function() {
+  var bufferSize, callQueue, cqYield, fq, fqStart;
+  fq = [];
+  fqStart = 0;
+  bufferSize = 1024;
+  callQueue = function() {
+    var err;
+    while (fq.length - fqStart) {
+      try {
+        fq[fqStart]();
+      } catch (error1) {
+        err = error1;
+        if (global.console) {
+          global.console.error(err);
+        }
+      }
+      fq[fqStart++] = _undefined;
+      if (fqStart === bufferSize) {
+        fq.splice(0, bufferSize);
+        fqStart = 0;
+      }
+    }
+  };
+  cqYield = (function() {
+    var dd, mo;
+    if (typeof MutationObserver !== _undefinedString) {
+      dd = document.createElement('div');
+      mo = new MutationObserver(callQueue);
+      mo.observe(dd, {
+        attributes: true
+      });
+      return function() {
+        dd.setAttribute('a', 0);
+      };
+    }
+    if (typeof setImmediate !== _undefinedString) {
+      return function() {
+        setImmediate(callQueue);
+      };
+    }
+    return function() {
+      setTimeout(callQueue, 0);
+    };
+  })();
+  return function(fn) {
+    fq.push(fn);
+    if (fq.length - fqStart === 1) {
+      cqYield();
+    }
+  };
+})();
+
+Promise$1 = function(fn) {
+  if (fn) {
+    fn((function(_this) {
       return function(arg) {
         return _this.resolve(arg);
       };
@@ -76,68 +138,6 @@ rejectClient = function(c, reason) {
     c.p.reject(reason);
   }
 };
-
-STATE_PENDING = void 0;
-
-STATE_FULFILLED = 'fulfilled';
-
-STATE_REJECTED = 'rejected';
-
-_undefined = void 0;
-
-_undefinedString = 'undefined';
-
-soon = (function() {
-  var bufferSize, callQueue, cqYield, fq, fqStart;
-  fq = [];
-  fqStart = 0;
-  bufferSize = 1024;
-  cqYield = (function() {
-    var dd, mo;
-    if (typeof MutationObserver !== _undefinedString) {
-      dd = document.createElement('div');
-      mo = new MutationObserver(callQueue);
-      mo.observe(dd, {
-        attributes: true
-      });
-      return function() {
-        dd.setAttribute('a', 0);
-      };
-    }
-    if (typeof setImmediate !== _undefinedString) {
-      return function() {
-        setImmediate(callQueue);
-      };
-    }
-    return function() {
-      setTimeout(callQueue, 0);
-    };
-  })();
-  callQueue = function() {
-    var err;
-    while (fq.length - fqStart) {
-      try {
-        fq[fqStart]();
-      } catch (error1) {
-        err = error1;
-        if (global.console) {
-          global.console.error(err);
-        }
-      }
-      fq[fqStart++] = _undefined;
-      if (fqStart === bufferSize) {
-        fq.splice(0, bufferSize);
-        fqStart = 0;
-      }
-    }
-  };
-  return function(fn) {
-    fq.push(fn);
-    if (fq.length - fqStart === 1) {
-      cqYield();
-    }
-  };
-})();
 
 Promise$1.prototype.resolve = function(value) {
   var e, first, me, next;
@@ -290,31 +290,30 @@ Promise$1.reject = function(err) {
   return z;
 };
 
-Promise$1.all = function(pa) {
-  var rc, results, retP, rp, x;
+Promise$1.all = function(ps) {
+  var i, j, len, p, rc, resolvePromise, results, retP;
   results = [];
   rc = 0;
-  retP = new Promise$1;
-  rp = function(p, i) {
+  retP = new Promise$1();
+  resolvePromise = function(p, i) {
     if (!p || typeof p.then !== 'function') {
       p = Promise$1.resolve(p);
     }
-    p.then((function(yv) {
+    p.then(function(yv) {
       results[i] = yv;
       rc++;
-      if (rc === pa.length) {
+      if (rc === ps.length) {
         retP.resolve(results);
       }
-    }), function(nv) {
+    }, function(nv) {
       retP.reject(nv);
     });
   };
-  x = 0;
-  while (x < pa.length) {
-    rp(pa[x], x);
-    x++;
+  for (i = j = 0, len = ps.length; j < len; i = ++j) {
+    p = ps[i];
+    resolvePromise(p, i);
   }
-  if (!pa.length) {
+  if (!ps.length) {
     retP.resolve(results);
   }
   return retP;
