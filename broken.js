@@ -1,8 +1,5 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.Broken = factory());
-}(this, (function () { 'use strict';
+var Broken = (function () {
+'use strict';
 
 var PromiseInspection;
 
@@ -366,4 +363,4 @@ Promise$2.soon = soon$1;
 
 return Promise$2;
 
-})));
+}());
