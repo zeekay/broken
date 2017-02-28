@@ -23,25 +23,7 @@ var PromiseInspection$1 = PromiseInspection = (function() {
 
 })();
 
-var Promise$1;
-var STATE_FULFILLED;
-var STATE_PENDING;
-var STATE_REJECTED;
-var _undefined;
-var _undefinedString;
-var rejectClient;
-var resolveClient;
 var soon;
-
-_undefined = void 0;
-
-_undefinedString = 'undefined';
-
-STATE_PENDING = _undefined;
-
-STATE_FULFILLED = 'fulfilled';
-
-STATE_REJECTED = 'rejected';
 
 soon = (function() {
   var bufferSize, callQueue, cqYield, fq, fqStart;
@@ -53,8 +35,8 @@ soon = (function() {
     while (fq.length - fqStart) {
       try {
         fq[fqStart]();
-      } catch (error1) {
-        err = error1;
+      } catch (error) {
+        err = error;
         if (global.console) {
           global.console.error(err);
         }
@@ -95,6 +77,24 @@ soon = (function() {
   };
 })();
 
+var soon$1 = soon;
+
+var Promise$1;
+var STATE_FULFILLED;
+var STATE_PENDING;
+var STATE_REJECTED;
+var _undefined$1;
+var rejectClient;
+var resolveClient;
+
+_undefined$1 = void 0;
+
+STATE_PENDING = _undefined$1;
+
+STATE_FULFILLED = 'fulfilled';
+
+STATE_REJECTED = 'rejected';
+
 Promise$1 = function(fn) {
   if (fn) {
     fn((function(_this) {
@@ -113,7 +113,7 @@ resolveClient = function(c, arg) {
   var err, yret;
   if (typeof c.y === 'function') {
     try {
-      yret = c.y.call(_undefined, arg);
+      yret = c.y.call(_undefined$1, arg);
       c.p.resolve(yret);
     } catch (error1) {
       err = error1;
@@ -128,7 +128,7 @@ rejectClient = function(c, reason) {
   var err, yret;
   if (typeof c.n === 'function') {
     try {
-      yret = c.n.call(_undefined, reason);
+      yret = c.n.call(_undefined$1, reason);
       c.p.resolve(yret);
     } catch (error1) {
       err = error1;
@@ -177,7 +177,7 @@ Promise$1.prototype.resolve = function(value) {
   this.state = STATE_FULFILLED;
   this.v = value;
   if (me.c) {
-    soon(function() {
+    soon$1(function() {
       var l, n;
       n = 0;
       l = me.c.length;
@@ -198,7 +198,7 @@ Promise$1.prototype.reject = function(reason) {
   this.v = reason;
   clients = this.c;
   if (clients) {
-    soon(function() {
+    soon$1(function() {
       var l, n;
       n = 0;
       l = clients.length;
@@ -229,7 +229,7 @@ Promise$1.prototype.then = function(onF, onR) {
   } else {
     s = this.state;
     a = this.v;
-    soon(function() {
+    soon$1(function() {
       if (s === STATE_FULFILLED) {
         resolveClient(client, a);
       } else {
@@ -338,6 +338,8 @@ Promise$1.reflect = function(promise) {
 Promise$1.settle = function(promises) {
   return Promise$1.all(promises.map(Promise$1.reflect));
 };
+
+Promise$1.soon = soon$1;
 
 var Promise$2 = Promise$1;
 
