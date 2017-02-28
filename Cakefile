@@ -29,19 +29,15 @@ task 'build', 'build project', ->
       sourceMap: true
   ]
 
-  # Browser (single file)
   bundle = yield rollup.rollup
     entry:   'src/index.coffee'
     plugins:  plugins
 
+  # Browser (single file)
   yield bundle.write
     dest:       pkg.name + '.js'
-    format:     'umd'
+    format:     'iife'
     moduleName: 'Broken'
-
-  bundle = yield rollup.rollup
-    entry:    'src/index.coffee'
-    plugins:  plugins
 
   # CommonJS
   yield bundle.write
