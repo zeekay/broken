@@ -35,7 +35,7 @@ task 'build', 'build project', ->
     plugins:  plugins
 
   yield bundle.write
-    dest:       'broken.js'
+    dest:       pkg.name + '.js'
     format:     'umd'
     moduleName: 'Broken'
 
@@ -54,3 +54,6 @@ task 'build', 'build project', ->
     dest:      pkg.module
     format:    'es'
     sourceMap: false
+
+task 'build:min', 'build project', ->
+  exec "uglifyjs #{pkg.name}.js --compress --mangle --lint=false > #{pkg.name}.min.js"
