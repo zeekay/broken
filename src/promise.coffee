@@ -4,8 +4,9 @@ Promise = (cb) ->
   if cb
     cb (arg) =>
       @resolve arg
-    , (arg) ->
-      @reject arg
+    , (arg) =>
+      @reject arg       # the reject function bound to this context
+  return
 
 resolveClient = (c, arg) ->
   if typeof c.y == 'function'
