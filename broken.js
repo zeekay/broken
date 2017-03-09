@@ -38,8 +38,8 @@ soon = (function() {
         fq[fqStart]();
       } catch (error) {
         err = error;
-        if (global.console) {
-          global.console.error(err);
+        if (typeof console !== 'undefined') {
+          console.error(err);
         }
       }
       fq[fqStart++] = _undefined$1;
@@ -211,8 +211,8 @@ Promise$1 = (function() {
           rejectClient(c, reason);
         }
       });
-    } else if (!Promise.suppressUncaughtRejectionError && global.console) {
-      global.console.log('Broken Promise, please catch rejections: ', reason, reason ? reason.stack : null);
+    } else if (!Promise.suppressUncaughtRejectionError && typeof console !== 'undefined') {
+      console.log('Broken Promise, please catch rejections: ', reason, reason ? reason.stack : null);
     }
   };
 
