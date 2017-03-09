@@ -95,8 +95,8 @@ class Promise
       soon ->
         rejectClient c, reason for c in clients
         return
-    else if !Promise.suppressUncaughtRejectionError and global.console
-      global.console.log 'Broken Promise, please catch rejections: ', reason, if reason then reason.stack else null
+    else if !Promise.suppressUncaughtRejectionError and typeof console != 'undefined'
+      console.log 'Broken Promise, please catch rejections: ', reason, if reason then reason.stack else null
 
     return
 

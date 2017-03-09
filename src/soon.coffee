@@ -29,8 +29,8 @@ soon = do ->
         # No context or args...
         fq[fqStart]()
       catch err
-        if global.console
-          global.console.error err
+        unless typeof console is 'undefined'
+          console.error err
 
       # Increase start pointer and dereference function just called
       fq[fqStart++] = _undefined
