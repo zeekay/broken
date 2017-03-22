@@ -29,6 +29,7 @@ task 'build:min', 'build project', ['build'], ->
   # Browser (single file)
   yield bundle.write
     entry:     'src/index.coffee'
+    dest:      'broken.min.js'
     format:    'web'
     cache:     false
     external:  false
