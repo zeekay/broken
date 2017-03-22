@@ -1,1 +1,360 @@
-var Broken=function(){"use strict";var t,e,n=t=class t{constructor(t){var e,n,r;n=t.state,r=t.value,e=t.reason,this.state=n,this.value=r,this.reason=e}isFulfilled(){return"fulfilled"===this.state}isRejected(){return"rejected"===this.state}};e=function(){var t,e,n,r,i;return r=[],i=0,t=1024,e=function(){for(var e;r.length-i;){try{r[i]()}catch(t){e=t,"undefined"!=typeof console&&console.error(e)}r[i++]=void 0,i===t&&(r.splice(0,t),i=0)}},n=function(){var t,n;return"undefined"!=typeof MutationObserver?(t=document.createElement("div"),n=new MutationObserver(e),n.observe(t,{attributes:!0}),function(){t.setAttribute("a",0)}):"undefined"!=typeof setImmediate?function(){setImmediate(e)}:function(){setTimeout(e,0)}}(),function(t){r.push(t),r.length-i==1&&n()}}();var r,i,o,u,c,s,f,a=e;c=void 0,o=c,i="fulfilled",u="rejected",f=function(t,e){var n,r;if("function"==typeof t.y)try{r=t.y.call(c,e),t.p.resolve(r)}catch(e){n=e,t.p.reject(n)}else t.p.resolve(e)},s=function(t,e){var n,r;if("function"==typeof t.n)try{r=t.n.call(c,e),t.p.resolve(r)}catch(e){n=e,t.p.reject(n)}else t.p.reject(e)},r=class t{constructor(t){t&&t(t=>{return this.resolve(t)},t=>{return this.reject(t)})}resolve(t){var e,n,r,u;if(this.state===o){if(t===this)return this.reject(new TypeError("Attempt to resolve promise with self"));if(t&&("function"==typeof t||"object"==typeof t))try{if(r=!0,"function"==typeof(u=t.then))return void u.call(t,t=>{r&&(r&&(r=!1),this.resolve(t))},t=>{r&&(r=!1,this.reject(t))})}catch(t){return n=t,void(r&&this.reject(n))}this.state=i,this.v=t,(e=this.c)&&a(()=>{var n,r,i;for(r=0,i=e.length;r<i;r++)n=e[r],f(n,t)})}}reject(e){var n;this.state===o&&(this.state=u,this.v=e,(n=this.c)?a(function(){var t,r,i;for(r=0,i=n.length;r<i;r++)t=n[r],s(t,e)}):t.suppressUncaughtRejectionError||"undefined"==typeof console||console.log("Broken Promise, please catch rejections: ",e,e?e.stack:null))}then(e,n){var r,u,c,l;return c=new t,u={y:e,n:n,p:c},this.state===o?this.c?this.c.push(u):this.c=[u]:(l=this.state,r=this.v,a(function(){l===i?f(u,r):s(u,r)})),c}["catch"](t){return this.then(null,t)}["finally"](t){return this.then(t,t)}timeout(e,n){return n=n||"timeout",new t((t,r)=>{setTimeout(function(){return r(Error(n))},e),this.then(function(e){t(e)},function(t){r(t)})})}callback(t){return"function"==typeof t&&(this.then(function(e){return t(null,e)}),this.catch(function(e){return t(e,null)})),this}};var l=r,h=function(t){var e;return e=new l,e.resolve(t),e},v=function(t){var e;return e=new l,e.reject(t),e},p=function(t){var e,n,r,i,o,u,c,s;for(c=[],o=0,s=new l,u=function(e,n){e&&"function"==typeof e.then||(e=h(e)),e.then(function(e){c[n]=e,++o===t.length&&s.resolve(c)},function(t){s.reject(t)})},e=n=0,r=t.length;n<r;e=++n)i=t[e],u(i,e);return t.length||s.resolve(c),s},d=function(t){return new l(function(e,r){return t.then(function(t){return e(new n({state:"fulfilled",value:t}))}).catch(function(t){return e(new n({state:"rejected",reason:t}))})})},y=function(t){return p(t.map(d))};return l.all=p,l.reflect=d,l.reject=v,l.resolve=h,l.settle=y,l.soon=a,l}();
+var Broken = (function () {
+'use strict';
+
+// src/promise-inspection.coffee
+var PromiseInspection;
+
+var PromiseInspection$1 = PromiseInspection = class PromiseInspection {
+  constructor(arg) {
+    var reason, state, value;
+    state = arg.state, value = arg.value, reason = arg.reason;
+    this.state = state;
+    this.value = value;
+    this.reason = reason;
+  }
+
+  isFulfilled() {
+    return this.state === 'fulfilled';
+  }
+
+  isRejected() {
+    return this.state === 'rejected';
+  }
+
+};
+
+// src/utils.coffee
+var _undefined$1 = void 0;
+
+var _undefinedString$1 = 'undefined';
+
+// src/soon.coffee
+var soon;
+
+soon = (function() {
+  var bufferSize, callQueue, cqYield, fq, fqStart;
+  fq = [];
+  fqStart = 0;
+  bufferSize = 1024;
+  callQueue = function() {
+    var err;
+    while (fq.length - fqStart) {
+      try {
+        fq[fqStart]();
+      } catch (error) {
+        err = error;
+        if (typeof console !== 'undefined') {
+          console.error(err);
+        }
+      }
+      fq[fqStart++] = _undefined$1;
+      if (fqStart === bufferSize) {
+        fq.splice(0, bufferSize);
+        fqStart = 0;
+      }
+    }
+  };
+  cqYield = (function() {
+    var dd, mo;
+    if (typeof MutationObserver !== _undefinedString$1) {
+      dd = document.createElement('div');
+      mo = new MutationObserver(callQueue);
+      mo.observe(dd, {
+        attributes: true
+      });
+      return function() {
+        dd.setAttribute('a', 0);
+      };
+    }
+    if (typeof setImmediate !== _undefinedString$1) {
+      return function() {
+        setImmediate(callQueue);
+      };
+    }
+    return function() {
+      setTimeout(callQueue, 0);
+    };
+  })();
+  return function(fn) {
+    fq.push(fn);
+    if (fq.length - fqStart === 1) {
+      cqYield();
+    }
+  };
+})();
+
+var soon$1 = soon;
+
+// src/promise.coffee
+var Promise$1;
+var STATE_FULFILLED;
+var STATE_PENDING;
+var STATE_REJECTED;
+var _undefined;
+var rejectClient;
+var resolveClient;
+
+_undefined = void 0;
+
+STATE_PENDING = _undefined;
+
+STATE_FULFILLED = 'fulfilled';
+
+STATE_REJECTED = 'rejected';
+
+resolveClient = function(c, arg) {
+  var err, yret;
+  if (typeof c.y === 'function') {
+    try {
+      yret = c.y.call(_undefined, arg);
+      c.p.resolve(yret);
+    } catch (error) {
+      err = error;
+      c.p.reject(err);
+    }
+  } else {
+    c.p.resolve(arg);
+  }
+};
+
+rejectClient = function(c, reason) {
+  var err, yret;
+  if (typeof c.n === 'function') {
+    try {
+      yret = c.n.call(_undefined, reason);
+      c.p.resolve(yret);
+    } catch (error) {
+      err = error;
+      c.p.reject(err);
+    }
+  } else {
+    c.p.reject(reason);
+  }
+};
+
+Promise$1 = class Promise {
+  constructor(fn) {
+    if (fn) {
+      fn((arg) => {
+        return this.resolve(arg);
+      }, (arg) => {
+        return this.reject(arg);
+      });
+    }
+  }
+
+  resolve(value) {
+    var clients, err, first, next;
+    if (this.state !== STATE_PENDING) {
+      return;
+    }
+    if (value === this) {
+      return this.reject(new TypeError('Attempt to resolve promise with self'));
+    }
+    if (value && (typeof value === 'function' || typeof value === 'object')) {
+      try {
+        first = true;
+        next = value.then;
+        if (typeof next === 'function') {
+          next.call(value, (ra) => {
+            if (first) {
+              if (first) {
+                first = false;
+              }
+              this.resolve(ra);
+            }
+          }, (rr) => {
+            if (first) {
+              first = false;
+              this.reject(rr);
+            }
+          });
+          return;
+        }
+      } catch (error) {
+        err = error;
+        if (first) {
+          this.reject(err);
+        }
+        return;
+      }
+    }
+    this.state = STATE_FULFILLED;
+    this.v = value;
+    if (clients = this.c) {
+      soon$1(() => {
+        var c, i, len;
+        for (i = 0, len = clients.length; i < len; i++) {
+          c = clients[i];
+          resolveClient(c, value);
+        }
+      });
+    }
+  }
+
+  reject(reason) {
+    var clients;
+    if (this.state !== STATE_PENDING) {
+      return;
+    }
+    this.state = STATE_REJECTED;
+    this.v = reason;
+    if (clients = this.c) {
+      soon$1(function() {
+        var c, i, len;
+        for (i = 0, len = clients.length; i < len; i++) {
+          c = clients[i];
+          rejectClient(c, reason);
+        }
+      });
+    } else if (!Promise.suppressUncaughtRejectionError && typeof console !== 'undefined') {
+      console.log('Broken Promise, please catch rejections: ', reason, reason ? reason.stack : null);
+    }
+  }
+
+  then(onFulfilled, onRejected) {
+    var a, client, p, s;
+    p = new Promise;
+    client = {
+      y: onFulfilled,
+      n: onRejected,
+      p: p
+    };
+    if (this.state === STATE_PENDING) {
+      if (this.c) {
+        this.c.push(client);
+      } else {
+        this.c = [client];
+      }
+    } else {
+      s = this.state;
+      a = this.v;
+      soon$1(function() {
+        if (s === STATE_FULFILLED) {
+          resolveClient(client, a);
+        } else {
+          rejectClient(client, a);
+        }
+      });
+    }
+    return p;
+  }
+
+  ["catch"](cfn) {
+    return this.then(null, cfn);
+  }
+
+  ["finally"](cfn) {
+    return this.then(cfn, cfn);
+  }
+
+  timeout(ms, msg) {
+    msg = msg || 'timeout';
+    return new Promise((resolve, reject) => {
+      setTimeout(function() {
+        return reject(Error(msg));
+      }, ms);
+      this.then(function(val) {
+        resolve(val);
+      }, function(err) {
+        reject(err);
+      });
+    });
+  }
+
+  callback(cb) {
+    if (typeof cb === 'function') {
+      this.then(function(val) {
+        return cb(null, val);
+      });
+      this["catch"](function(err) {
+        return cb(err, null);
+      });
+    }
+    return this;
+  }
+
+};
+
+var Promise$2 = Promise$1;
+
+// src/helpers.coffee
+var resolve = function(val) {
+  var z;
+  z = new Promise$2;
+  z.resolve(val);
+  return z;
+};
+
+var reject = function(err) {
+  var z;
+  z = new Promise$2;
+  z.reject(err);
+  return z;
+};
+
+var all = function(ps) {
+  var i, j, len, p, rc, resolvePromise, results, retP;
+  results = [];
+  rc = 0;
+  retP = new Promise$2();
+  resolvePromise = function(p, i) {
+    if (!p || typeof p.then !== 'function') {
+      p = resolve(p);
+    }
+    p.then(function(yv) {
+      results[i] = yv;
+      rc++;
+      if (rc === ps.length) {
+        retP.resolve(results);
+      }
+    }, function(nv) {
+      retP.reject(nv);
+    });
+  };
+  for (i = j = 0, len = ps.length; j < len; i = ++j) {
+    p = ps[i];
+    resolvePromise(p, i);
+  }
+  if (!ps.length) {
+    retP.resolve(results);
+  }
+  return retP;
+};
+
+var reflect = function(promise) {
+  return new Promise$2(function(resolve, reject) {
+    return promise.then(function(value) {
+      return resolve(new PromiseInspection$1({
+        state: 'fulfilled',
+        value: value
+      }));
+    })["catch"](function(err) {
+      return resolve(new PromiseInspection$1({
+        state: 'rejected',
+        reason: err
+      }));
+    });
+  });
+};
+
+var settle = function(promises) {
+  return all(promises.map(reflect));
+};
+
+// src/index.coffee
+Promise$2.all = all;
+
+Promise$2.reflect = reflect;
+
+Promise$2.reject = reject;
+
+Promise$2.resolve = resolve;
+
+Promise$2.settle = settle;
+
+Promise$2.soon = soon$1;
+
+return Promise$2;
+
+}());
