@@ -1,15 +1,10 @@
 require 'shortcake'
 
+use 'cake-bundle'
+use 'cake-outdated'
 use 'cake-publish'
 use 'cake-test'
 use 'cake-version'
-
-coffee      = require 'rollup-plugin-coffee-script'
-commonjs    = require 'rollup-plugin-commonjs'
-nodeResolve = require 'rollup-plugin-node-resolve'
-rollup      = require 'rollup'
-
-pkg         = require './package'
 
 option '-g', '--grep [filter]', 'test filter'
 option '-v', '--version [<newversion> | major | minor | patch | build]', 'new version'
@@ -18,38 +13,22 @@ task 'clean', 'clean project', ->
   exec 'rm -rf dist'
 
 task 'build', 'build project', ->
-  plugins = [
-    coffee()
-    nodeResolve
-      browser: true
-      extensions: ['.js', '.coffee']
-      module:  true
-    commonjs
-      extensions: ['.js', '.coffee']
-      sourceMap: true
-  ]
-
-  bundle = yield rollup.rollup
+  # CommonJS and ES libs
+  yield bundle.write
     entry:   'src/index.coffee'
-    plugins:  plugins
+    formats: ['cjs','es']
 
   # Browser (single file)
   yield bundle.write
-    dest:       pkg.name + '.js'
-    format:     'iife'
-    moduleName: 'Broken'
-
-  # CommonJS
-  yield bundle.write
-    dest:       pkg.main
-    format:     'cjs'
-    sourceMap:  false
-
-  # ES module bundle
-  yield bundle.write
-    dest:      pkg.module
-    format:    'es'
+    entry:     'src/index.coffee'
+    format:    'web'
+    external:  false
     sourceMap: false
 
-task 'build:min', 'build project', ->
-  exec "uglifyjs #{pkg.name}.js --compress --mangle --lint=false > #{pkg.name}.min.js"
+task 'build:min', 'build project', ['build'], ->
+  # Browser (single file)
+  yield bundle.write
+    entry:    'src/index.coffee'
+    format:   'web'
+    external: false
+    minify:   true

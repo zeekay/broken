@@ -2,10 +2,25 @@
   "name": "broken",
   "version": "0.1.10",
   "description": "Promises are meant to be broken.",
+  "homepage": "https://github.com/zeekay/broken#readme",
+  "author": "Zach Kelling <z@zeekay.io>",
+  "license": "MIT",
+  "bugs": "https://github.com/zeekay/broken/issues",
+  "repository": "github:zeekay/broken",
+  "keywords": [
+    "promises",
+    "promise"
+  ],
   "main": "dist/broken.js",
   "module": "dist/broken.mjs",
   "js:next": "dist/broken.mjs",
+  "files": [
+    "dist/",
+    "src/"
+  ],
   "devDependencies": {
+    "cake-bundle": "0.2.2",
+    "cake-outdated": "0.1.13",
     "cake-publish": "0.1.5",
     "cake-test": "0.1.0",
     "cake-version": "0.1.9",
@@ -21,20 +36,7 @@
     "shortcake": "1.1.18"
   },
   "scripts": {
-    "prepublish": "cake build",
+    "prepublishOnly": "cake build:min",
     "test": "cake test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zeekay/broken.git"
-  },
-  "keywords": [
-    "promises"
-  ],
-  "author": "Zach Kelling <zk@monoid.io> (http://zeekay.io)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/zeekay/broken/issues"
-  },
-  "homepage": "https://github.com/zeekay/broken#readme"
+  }
 }

@@ -1,29 +1,34 @@
 var Broken = (function () {
 'use strict';
 
+// src/promise-inspection.coffee
 var PromiseInspection;
 
-var PromiseInspection$1 = PromiseInspection = (function() {
-  function PromiseInspection(arg) {
-    this.state = arg.state, this.value = arg.value, this.reason = arg.reason;
+var PromiseInspection$1 = PromiseInspection = class PromiseInspection {
+  constructor(arg) {
+    var reason, state, value;
+    state = arg.state, value = arg.value, reason = arg.reason;
+    this.state = state;
+    this.value = value;
+    this.reason = reason;
   }
 
-  PromiseInspection.prototype.isFulfilled = function() {
+  isFulfilled() {
     return this.state === 'fulfilled';
-  };
+  }
 
-  PromiseInspection.prototype.isRejected = function() {
+  isRejected() {
     return this.state === 'rejected';
-  };
+  }
 
-  return PromiseInspection;
+};
 
-})();
-
+// src/utils.coffee
 var _undefined$1 = void 0;
 
 var _undefinedString$1 = 'undefined';
 
+// src/soon.coffee
 var soon;
 
 soon = (function() {
@@ -80,6 +85,7 @@ soon = (function() {
 
 var soon$1 = soon;
 
+// src/promise.coffee
 var Promise$1;
 var STATE_FULFILLED;
 var STATE_PENDING;
@@ -126,22 +132,18 @@ rejectClient = function(c, reason) {
   }
 };
 
-Promise$1 = (function() {
-  function Promise(fn) {
+Promise$1 = class Promise {
+  constructor(fn) {
     if (fn) {
-      fn((function(_this) {
-        return function(arg) {
-          return _this.resolve(arg);
-        };
-      })(this), (function(_this) {
-        return function(arg) {
-          return _this.reject(arg);
-        };
-      })(this));
+      fn((arg) => {
+        return this.resolve(arg);
+      }, (arg) => {
+        return this.reject(arg);
+      });
     }
   }
 
-  Promise.prototype.resolve = function(value) {
+  resolve(value) {
     var clients, err, first, next;
     if (this.state !== STATE_PENDING) {
       return;
@@ -154,23 +156,19 @@ Promise$1 = (function() {
         first = true;
         next = value.then;
         if (typeof next === 'function') {
-          next.call(value, (function(_this) {
-            return function(ra) {
-              if (first) {
-                if (first) {
-                  first = false;
-                }
-                _this.resolve(ra);
-              }
-            };
-          })(this), (function(_this) {
-            return function(rr) {
+          next.call(value, (ra) => {
+            if (first) {
               if (first) {
                 first = false;
-                _this.reject(rr);
               }
-            };
-          })(this));
+              this.resolve(ra);
+            }
+          }, (rr) => {
+            if (first) {
+              first = false;
+              this.reject(rr);
+            }
+          });
           return;
         }
       } catch (error) {
@@ -184,19 +182,17 @@ Promise$1 = (function() {
     this.state = STATE_FULFILLED;
     this.v = value;
     if (clients = this.c) {
-      soon$1((function(_this) {
-        return function() {
-          var c, i, len;
-          for (i = 0, len = clients.length; i < len; i++) {
-            c = clients[i];
-            resolveClient(c, value);
-          }
-        };
-      })(this));
+      soon$1(() => {
+        var c, i, len;
+        for (i = 0, len = clients.length; i < len; i++) {
+          c = clients[i];
+          resolveClient(c, value);
+        }
+      });
     }
-  };
+  }
 
-  Promise.prototype.reject = function(reason) {
+  reject(reason) {
     var clients;
     if (this.state !== STATE_PENDING) {
       return;
@@ -214,9 +210,9 @@ Promise$1 = (function() {
     } else if (!Promise.suppressUncaughtRejectionError && typeof console !== 'undefined') {
       console.log('Broken Promise, please catch rejections: ', reason, reason ? reason.stack : null);
     }
-  };
+  }
 
-  Promise.prototype.then = function(onFulfilled, onRejected) {
+  then(onFulfilled, onRejected) {
     var a, client, p, s;
     p = new Promise;
     client = {
@@ -242,33 +238,31 @@ Promise$1 = (function() {
       });
     }
     return p;
-  };
+  }
 
-  Promise.prototype["catch"] = function(cfn) {
+  ["catch"](cfn) {
     return this.then(null, cfn);
-  };
+  }
 
-  Promise.prototype["finally"] = function(cfn) {
+  ["finally"](cfn) {
     return this.then(cfn, cfn);
-  };
+  }
 
-  Promise.prototype.timeout = function(ms, msg) {
+  timeout(ms, msg) {
     msg = msg || 'timeout';
-    return new Promise((function(_this) {
-      return function(resolve, reject) {
-        setTimeout(function() {
-          return reject(Error(msg));
-        }, ms);
-        _this.then(function(val) {
-          resolve(val);
-        }, function(err) {
-          reject(err);
-        });
-      };
-    })(this));
-  };
+    return new Promise((resolve, reject) => {
+      setTimeout(function() {
+        return reject(Error(msg));
+      }, ms);
+      this.then(function(val) {
+        resolve(val);
+      }, function(err) {
+        reject(err);
+      });
+    });
+  }
 
-  Promise.prototype.callback = function(cb) {
+  callback(cb) {
     if (typeof cb === 'function') {
       this.then(function(val) {
         return cb(null, val);
@@ -278,14 +272,13 @@ Promise$1 = (function() {
       });
     }
     return this;
-  };
+  }
 
-  return Promise;
-
-})();
+};
 
 var Promise$2 = Promise$1;
 
+// src/helpers.coffee
 var resolve = function(val) {
   var z;
   z = new Promise$2;
@@ -349,6 +342,7 @@ var settle = function(promises) {
   return all(promises.map(reflect));
 };
 
+// src/index.coffee
 Promise$2.all = all;
 
 Promise$2.reflect = reflect;
