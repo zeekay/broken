@@ -28,7 +28,9 @@ task 'build', 'build project', ->
 task 'build:min', 'build project', ['build'], ->
   # Browser (single file)
   yield bundle.write
-    entry:    'src/index.coffee'
-    format:   'web'
-    external: false
-    minify:   true
+    entry:     'src/index.coffee'
+    format:    'web'
+    cache:     false
+    external:  false
+    minify:    true
+    sourceMap: false
