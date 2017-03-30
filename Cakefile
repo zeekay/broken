@@ -14,16 +14,19 @@ task 'clean', 'clean project', ->
 
 task 'build', 'build project', ->
   # CommonJS and ES libs
-  yield bundle.write
+  b = yield bundle
     entry:   'src/index.coffee'
-    formats: ['cjs','es']
+    compilers:
+      coffee:
+        version: 1
 
-  # Browser (single file)
-  yield bundle.write
-    entry:     'src/index.coffee'
-    format:    'web'
-    external:  false
-    sourceMap: false
+  Promise.all [
+    b.write formats: ['cjs','es']
+    b.write
+      format:    'web'
+      external:  false
+      sourceMap: false
+  ]
 
 task 'build:min', 'build project', ['build'], ->
   # Browser (single file)
@@ -35,3 +38,6 @@ task 'build:min', 'build project', ['build'], ->
     external:  false
     minify:    true
     sourceMap: false
+    compilers:
+      coffee:
+        version: 1
