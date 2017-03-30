@@ -19,17 +19,17 @@
     "src/"
   ],
   "devDependencies": {
-    "cake-bundle": "0.2.3",
-    "cake-outdated": "0.1.13",
-    "cake-publish": "0.1.5",
+    "cake-bundle": "0.2.17",
+    "cake-outdated": "0.1.16",
+    "cake-publish": "0.1.10",
     "cake-test": "0.1.0",
-    "cake-version": "0.1.11",
+    "cake-version": "0.1.14",
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
     "co-mocha": "1.2.0",
     "coffee-script": "1.12.4",
     "mocha": "3.2.0",
-    "shortcake": "1.2.5"
+    "shortcake": "1.2.7"
   },
   "scripts": {
     "prepublishOnly": "cake build:min",
