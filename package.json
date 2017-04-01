@@ -11,11 +11,11 @@
     "promises",
     "promise"
   ],
-  "main": "dist/broken.js",
-  "module": "dist/broken.mjs",
-  "js:next": "dist/broken.mjs",
+  "main": "lib/broken.js",
+  "module": "lib/broken.mjs",
+  "js:next": "lib/broken.mjs",
   "files": [
-    "dist/",
+    "lib/",
     "src/"
   ],
   "devDependencies": {
