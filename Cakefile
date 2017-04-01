@@ -15,10 +15,9 @@ task 'clean', 'clean project', ->
 task 'build', 'build project', ->
   # CommonJS and ES libs
   b = yield bundle
-    entry:   'src/index.coffee'
+    entry: 'src/index.coffee'
     compilers:
-      coffee:
-        version: 1
+      coffee: version: 1
 
   Promise.all [
     b.write formats: ['cjs','es']
