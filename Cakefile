@@ -1,13 +1,9 @@
-require 'shortcake'
-
-use 'cake-bundle'
-use 'cake-outdated'
-use 'cake-publish'
-use 'cake-test'
-use 'cake-version'
-
-option '-g', '--grep [filter]', 'test filter'
-option '-v', '--version [<newversion> | major | minor | patch | build]', 'new version'
+use 'sake-bundle'
+use 'sake-chai'
+use 'sake-mocha'
+use 'sake-outdated'
+use 'sake-publish'
+use 'sake-version'
 
 task 'clean', 'clean project', ->
   exec 'rm -rf dist'
