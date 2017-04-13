@@ -1,22 +1,22 @@
 use 'sake-bundle'
-use 'sake-chai'
-use 'sake-mocha'
 use 'sake-outdated'
 use 'sake-publish'
+use 'sake-test'
 use 'sake-version'
 
 task 'clean', 'clean project', ->
-  exec 'rm -rf dist'
+  exec 'rm -rf lib'
 
 task 'build', 'build project', ->
-  # CommonJS and ES libs
   b = yield bundle
     entry: 'src/index.coffee'
     compilers:
       coffee: version: 1
 
   Promise.all [
+    # CommonJS and ES libs
     b.write formats: ['cjs','es']
+    # All-contained web browser package
     b.write
       format:    'web'
       external:  false
@@ -24,15 +24,4 @@ task 'build', 'build project', ->
   ]
 
 task 'build:min', 'build project', ['build'], ->
-  # Browser (single file)
-  yield bundle.write
-    entry:     'src/index.coffee'
-    dest:      'broken.min.js'
-    format:    'web'
-    cache:     false
-    external:  false
-    minify:    true
-    sourceMap: false
-    compilers:
-      coffee:
-        version: 1
+  exec 'uglifyjs broken.js -o broken.min.js'
